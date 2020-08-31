@@ -5,7 +5,8 @@ fn decode(line: &str) -> Option<usize> {
     match it.next()? {
         '"' => {
             let mut count = 0;
-            while let c = it.next()? {
+            loop {
+                let c = it.next()?;
                 match c {
                     '"' => break,
                     '\\' => match it.next()? {
