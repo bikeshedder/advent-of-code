@@ -9,7 +9,9 @@ fn main() {
     numbers.sort();
     for (i, n) in itertools::enumerate(&numbers) {
         match numbers[i..].binary_search(&(2020 - n)) {
-            Ok(j) => { println!("{}", (n * numbers[i+j])); }
+            Ok(j) => {
+                println!("{}", (n * numbers[i + j]));
+            }
             Err(_) => {}
         }
     }
