@@ -1,20 +1,15 @@
 const INPUT: &[u8] = include_bytes!("2020-03.txt");
-const STEP: usize = 3;
+const RIGHT: usize = 3;
 
 fn main() {
     let solution = INPUT
         .split(|&c| c == b'\n')
         .filter(|line| !line.is_empty())
-        .fold((0, 0), |(idx, cnt), line| {
-            (
-                idx + STEP,
-                cnt + match line[idx % line.len()] {
-                    b'.' => 0,
-                    b'#' => 1,
-                    _ => unreachable!(),
-                },
-            )
+        .scan(0, |col, line| {
+            let is_tree = line[*col] == b'#';
+            *col = (*col + RIGHT) % line.len();
+            Some(is_tree as usize)
         })
-        .1;
+        .sum::<usize>();
     println!("{}", solution);
 }

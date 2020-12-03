@@ -9,22 +9,14 @@ fn main() {
                 .split(|&c| c == b'\n')
                 .filter(|line| !line.is_empty())
                 .enumerate()
-                .filter_map(|(i, line)| match i % down {
-                    0 => Some(line),
-                    _ => None,
+                .filter(|(i, _)| i % down == 0)
+                .scan(0, |col, (_, line)| {
+                    let is_tree = line[*col] == b'#';
+                    *col = (*col + right) % line.len();
+                    Some(is_tree as usize)
                 })
-                .fold((0, 0), |(idx, cnt), line| {
-                    (
-                        idx + right,
-                        cnt + match line[idx % line.len()] {
-                            b'.' => 0,
-                            b'#' => 1,
-                            _ => unreachable!(),
-                        },
-                    )
-                })
-                .1
+                .sum::<usize>()
         })
-        .fold(1, |prod, cnt| prod * cnt);
+        .product::<usize>();
     println!("{}", solution);
 }
