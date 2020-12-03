@@ -17,9 +17,9 @@ fn main() {
         .map(|line| {
             let m = re.captures(line).unwrap();
             Line {
-                min: m.get(1).unwrap().as_str().parse().unwrap(),
-                max: m.get(2).unwrap().as_str().parse().unwrap(),
-                c: m.get(3).unwrap().as_str().chars().next().unwrap(),
+                min: m[1].parse().unwrap(),
+                max: m[2].parse().unwrap(),
+                c: m[3].chars().next().unwrap(),
                 s: m.get(4).unwrap().as_str(),
             }
         })
