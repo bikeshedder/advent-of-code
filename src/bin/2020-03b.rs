@@ -8,9 +8,8 @@ fn main() {
             INPUT
                 .split(|&c| c == b'\n')
                 .filter(|line| !line.is_empty())
-                .enumerate()
-                .filter(|(i, _)| i % down == 0)
-                .scan(0, |col, (_, line)| {
+                .step_by(*down)
+                .scan(0, |col, line| {
                     let is_tree = line[*col] == b'#';
                     *col = (*col + right) % line.len();
                     Some(is_tree as usize)
