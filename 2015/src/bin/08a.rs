@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("2015-08.txt");
+const INPUT: &str = include_str!("../input/08.txt");
 
 fn decode(line: &str) -> Option<usize> {
     let mut it = line.chars();

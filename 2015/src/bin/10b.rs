@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-const INPUT: &str = include_str!("2015-10.txt");
+const INPUT: &str = include_str!("../input/10.txt");
 
 fn main() {
     let output = (0..50).fold(INPUT.trim().to_owned(), |s, _| {

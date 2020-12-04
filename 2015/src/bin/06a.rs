@@ -1,6 +1,6 @@
 use regex::Regex;
 
-const INPUT: &str = include_str!("2015-06.txt");
+const INPUT: &str = include_str!("../input/06.txt");
 
 fn main() {
     let re = Regex::new(r"^(turn on|turn off|toggle) (\d+),(\d+) through (\d+),(\d+)$").unwrap();

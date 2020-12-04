@@ -1,12 +1,14 @@
 use std::collections::HashSet;
 
-const INPUT: &str = include_str!("2015-03.txt");
+const INPUT: &str = include_str!("../input/03.txt");
 
 fn main() {
     let output = INPUT
         .trim()
         .chars()
-        .scan((0, 0), |xy, c| {
+        .enumerate()
+        .scan([(0, 0), (0, 0)], |t, (i, c)| {
+            let xy = &mut t[i % 2];
             *xy = match c {
                 '>' => (xy.0 + 1, xy.1),
                 '<' => (xy.0 - 1, xy.1),

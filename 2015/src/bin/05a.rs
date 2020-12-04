@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-const INPUT: &str = include_str!("2015-05.txt");
+const INPUT: &str = include_str!("../input/05.txt");
 
 const VOWELS: &'static str = "aeiou";
 const BAD_WORDS: &'static [&str] = &["ab", "cd", "pq", "xy"];

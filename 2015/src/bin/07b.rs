@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-const INPUT: &str = include_str!("2015-07.txt");
+const INPUT: &str = include_str!("../input/07.txt");
 
 #[derive(Debug)]
 enum Input {

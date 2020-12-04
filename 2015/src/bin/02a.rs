@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("2015-02.txt");
+const INPUT: &str = include_str!("../input/02.txt");
 
 fn main() {
     let output: usize = INPUT

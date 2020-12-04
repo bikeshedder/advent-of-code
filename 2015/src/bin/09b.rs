@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
 
-const INPUT: &str = include_str!("2015-09.txt");
+const INPUT: &str = include_str!("../input/09.txt");
 
 fn main() {
     // step 1: find the number of unique destinations

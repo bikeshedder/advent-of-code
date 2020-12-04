@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("2015-04.txt");
+const INPUT: &str = include_str!("../input/04.txt");
 
 fn main() {
     let secret = INPUT.trim();
@@ -6,7 +6,7 @@ fn main() {
         .filter_map(|i| {
             let s = format!("{}{}", secret, i);
             let digest = md5::compute(s);
-            if format!("{:?}", digest).starts_with("00000") {
+            if format!("{:?}", digest).starts_with("000000") {
                 Some(i)
             } else {
                 None
