@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("2020-04.txt");
+const INPUT: &str = include_str!("../input/04.txt");
 const REQ_FIELDS: [&str; 7] = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
 
 fn main() {

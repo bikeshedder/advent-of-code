@@ -1,6 +1,6 @@
 use regex::Regex;
 
-const INPUT: &str = include_str!("2020-02.txt");
+const INPUT: &str = include_str!("../input/02.txt");
 
 struct Line<'a> {
     min: usize,
@@ -24,12 +24,8 @@ fn main() {
             }
         })
         .filter(|line| {
-            let x = line.s.chars().nth(line.min - 1).unwrap();
-            let y = line.s.chars().nth(line.max - 1).unwrap();
-            match (x == line.c, y == line.c) {
-                (true, false) | (false, true) => true,
-                _ => false,
-            }
+            let count = line.s.chars().filter(|c| *c == line.c).count();
+            line.min <= count && count <= line.max
         })
         .count();
     println!("{}", correct);

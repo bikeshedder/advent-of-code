@@ -2,7 +2,7 @@ use itertools::Itertools;
 use regex::Regex;
 use scan_fmt::scan_fmt;
 
-const INPUT: &str = include_str!("2020-04.txt");
+const INPUT: &str = include_str!("../input/04.txt");
 
 fn check_year(s: &str, min: u64, max: u64) -> bool {
     matches!(s.parse::<u64>(), Ok(x) if x >= min && x <= max)

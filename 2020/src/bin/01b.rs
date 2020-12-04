@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("2020-01.txt");
+const INPUT: &str = include_str!("../input/01.txt");
 
 fn main() {
     let mut numbers = INPUT

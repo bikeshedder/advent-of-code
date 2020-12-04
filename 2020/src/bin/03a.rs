@@ -1,4 +1,4 @@
-const INPUT: &[u8] = include_bytes!("2020-03.txt");
+const INPUT: &[u8] = include_bytes!("../input/03.txt");
 const RIGHT: usize = 3;
 
 fn main() {
