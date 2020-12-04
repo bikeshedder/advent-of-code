@@ -27,7 +27,7 @@ fn main() {
         .filter(|p| {
             p.split_whitespace()
                 .filter_map(|f| f.splitn(2, ":").collect_tuple::<(_, _)>())
-                .map(|(k, v)| match k {
+                .filter(|(k, v)| match *k {
                     "byr" => check_year(v, 1920, 2002),
                     "iyr" => check_year(v, 2010, 2020),
                     "eyr" => check_year(v, 2020, 2030),
@@ -37,7 +37,6 @@ fn main() {
                     "pid" => pid_re.is_match(v),
                     _ => false,
                 })
-                .filter(|&ok| ok)
                 .count()
                 >= 7
         })
