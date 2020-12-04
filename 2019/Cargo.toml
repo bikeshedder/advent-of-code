@@ -1,0 +1,11 @@
+[package]
+authors = ["Michael P. Jung <michael.jung@terreon.de>"]
+edition = "2018"
+name = "aoc_2019"
+version = "0.1.0"
+
+[dependencies]
+md5 = "0.7"
+itertools = "0.9"
+regex = "1"
+scan_fmt = "0.2"
