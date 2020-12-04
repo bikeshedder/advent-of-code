@@ -39,7 +39,7 @@ fn main() {
                         })
                         .unwrap_or(false),
                     "hcl" => hcl_re.find(v).is_some(),
-                    "ecl" => EYE_COLORS.iter().find(|&&x| x == v).is_some(),
+                    "ecl" => EYE_COLORS.contains(&v),
                     "pid" => pid_re.find(v).is_some(),
                     _ => false,
                 })
