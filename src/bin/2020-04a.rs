@@ -3,15 +3,14 @@ const REQ_FIELDS: [&str; 7] = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
 
 fn main() {
     let solution = INPUT
-        .trim()
         .split("\n\n")
-        .map(|p| {
+        .filter(|p| {
             p.split_whitespace()
-                .map(|f| f.split(":").next().unwrap())
-                .filter(|k| REQ_FIELDS.iter().find(|&rf| rf == k).is_some())
+                .filter_map(|f| f.split(":").next())
+                .filter(|k| REQ_FIELDS.contains(k))
                 .count()
+                >= 7
         })
-        .filter(|&c| c >= 7)
         .count();
     println!("{:?}", solution);
 }
