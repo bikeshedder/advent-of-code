@@ -13,7 +13,7 @@ fn parse_rules(input: &str) -> impl Iterator<Item = Rule> {
             let bag = split.next().unwrap();
             let content = match split.next().unwrap() {
                 "no other bags" => Vec::new(),
-                split => split
+                content => content
                     .split(", ")
                     .map(|part| {
                         let mut split = part.splitn(2, " ");
@@ -30,11 +30,11 @@ fn parse_rules(input: &str) -> impl Iterator<Item = Rule> {
 
 type Rules<'a> = HashMap<&'a str, Vec<(usize, &'a str)>>;
 
-fn count_bags(rules: &Rules, container: &str) -> usize {
-    1 + match rules.get(container) {
+fn count_bags(rules: &Rules, bag: &str) -> usize {
+    1 + match rules.get(bag) {
         Some(contents) => contents
             .iter()
-            .map(|cnode| cnode.0 * count_bags(rules, cnode.1))
+            .map(|(count, b)| count * count_bags(rules, b))
             .sum(),
         None => 0,
     }

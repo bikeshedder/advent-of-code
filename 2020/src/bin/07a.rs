@@ -13,7 +13,7 @@ fn parse_rules(input: &str) -> impl Iterator<Item = Rule> {
             let bag = split.next().unwrap();
             let content = match split.next().unwrap() {
                 "no other bags" => Vec::new(),
-                split => split
+                content => content
                     .split(", ")
                     .map(|part| {
                         let mut split = part.splitn(2, " ");
@@ -30,11 +30,11 @@ fn parse_rules(input: &str) -> impl Iterator<Item = Rule> {
 
 type Rules<'a> = HashMap<&'a str, Vec<(usize, &'a str)>>;
 
-fn can_contain(rules: &Rules, container: &str, containee: &str) -> bool {
+fn can_contain(rules: &Rules, container: &str, bag: &str) -> bool {
     match rules.get(container) {
         Some(contents) => contents
             .iter()
-            .find(|cnode| cnode.1 == containee || can_contain(rules, cnode.1, containee))
+            .find(|(_, b)| *b == bag || can_contain(rules, b, bag))
             .is_some(),
         None => false,
     }
