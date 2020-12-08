@@ -1,4 +1,4 @@
-const INPUT: &[u8] = include_bytes!("2015-05.txt");
+const INPUT: &[u8] = include_bytes!("../input/05.txt");
 
 fn main() {
     let output = INPUT
