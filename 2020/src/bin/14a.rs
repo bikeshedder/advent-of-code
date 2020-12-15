@@ -18,11 +18,9 @@ impl Mask {
 impl FromStr for Mask {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(s.chars().fold(Self::default(), |bm, c| {
-            Mask {
-                mask: bm.mask << 1 | (c == 'X') as u64,
-                write: bm.write << 1 | (c == '1') as u64,
-            }
+        Ok(s.chars().fold(Self::default(), |bm, c| Mask {
+            mask: bm.mask << 1 | (c == 'X') as u64,
+            write: bm.write << 1 | (c == '1') as u64,
         }))
     }
 }
@@ -34,12 +32,16 @@ enum Instruction {
 
 fn main() {
     let instruction_re = Regex::new(r"^(mask|mem)(?:\[(\d+)\])? = (\S+)$").unwrap();
-    let program = INPUT.lines()
+    let program = INPUT
+        .lines()
         .map(|line| {
             let c = instruction_re.captures(line).unwrap();
             match &c[1] {
                 "mask" => Instruction::Mask(c[3].parse().unwrap()),
-                "mem" => Instruction::Mem { addr: c[2].parse().unwrap(), value: c[3].parse().unwrap() },
+                "mem" => Instruction::Mem {
+                    addr: c[2].parse().unwrap(),
+                    value: c[3].parse().unwrap(),
+                },
                 _ => unreachable!(),
             }
         })
