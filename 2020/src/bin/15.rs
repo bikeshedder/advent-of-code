@@ -1,6 +1,16 @@
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 
 const INPUT: &str = include_str!("../input/15.txt");
+
+fn step(past: &mut HashMap<usize, usize>, n: usize, i: usize) -> usize {
+    match past.entry(n) {
+        Entry::Vacant(entry) => {
+            entry.insert(i);
+            0
+        }
+        Entry::Occupied(mut entry) => i - entry.insert(i),
+    }
+}
 
 fn game(nth: usize) -> usize {
     let numbers: Vec<usize> = INPUT
@@ -9,20 +19,14 @@ fn game(nth: usize) -> usize {
         .filter_map(|n| n.parse().ok())
         .collect();
     let mut past: HashMap<usize, usize> = HashMap::new();
-    for (i, n) in numbers.iter().enumerate() {
-        past.insert(*n, i);
-    }
-    let mut current = 0usize;
     let mut next = 0usize;
-    for i in numbers.len()..nth {
-        current = next;
-        next = match past.get(&next) {
-            Some(j) => i - j,
-            None => 0
-        };
-        past.insert(current, i);
+    for (i, n) in numbers.iter().enumerate() {
+        next = step(&mut past, *n, i);
     }
-    current
+    for i in numbers.len()..nth - 1 {
+        next = step(&mut past, next, i);
+    }
+    next
 }
 
 fn main() {
