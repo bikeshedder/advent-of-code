@@ -3,7 +3,7 @@ const INPUT: &str = include_str!("../input/15.txt");
 fn step(history: &mut [u32], n: u32, i: u32) -> u32 {
     let next = match history[n as usize] {
         std::u32::MAX => 0,
-        j => i - j
+        j => i - j,
     };
     history[n as usize] = i;
     next
