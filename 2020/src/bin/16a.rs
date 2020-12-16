@@ -70,16 +70,11 @@ fn main() {
         .map(|ticket| {
             ticket
                 .iter()
-                .map(|value| {
-                    if fields
+                .filter(|value| {
+                    fields
                         .iter()
-                        .find(|field| field.check_value(*value))
+                        .find(|field| field.check_value(**value))
                         .is_none()
-                    {
-                        *value
-                    } else {
-                        0
-                    }
                 })
                 .sum::<u32>()
         })
