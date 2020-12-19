@@ -87,7 +87,7 @@ fn step(space: &mut Space) {
         for y in 1..space.size.1 - 1 {
             for x in 1..space.size.0 - 1 {
                 let p = (z, y, x);
-                space[p] = match (space[p], active_region(&clone, p)) {
+                space[p] = match (clone[p], active_region(&clone, p)) {
                     (true, 3) | (true, 4) => true,
                     (false, 3) => true,
                     _ => false,
