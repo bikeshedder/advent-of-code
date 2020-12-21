@@ -23,49 +23,48 @@ impl<'a> Food<'a> {
 }
 
 fn main() {
-    let mut foods: Vec<Food> = INPUT.lines().map(|line| Food::parse(line)).collect();
-    let mut allergen_foods_map: HashMap<&str, Vec<usize>> = foods
-        .iter()
-        .map(|food| &food.allergens)
-        .enumerate()
-        .fold(HashMap::new(), |mut map, (food_idx, allergens)| {
-            for allergen in allergens {
-                map.entry(allergen).or_default().push(food_idx);
+    let foods: Vec<Food> = INPUT.lines().map(|line| Food::parse(line)).collect();
+    let mut allergen_ingredients_map: HashMap<&str, HashSet<&str>> =
+        foods.iter().fold(HashMap::new(), |mut map, food| {
+            for allergen in food.allergens.iter() {
+                map.entry(allergen)
+                    .and_modify(|ingredients| ingredients.retain(|i| food.ingredients.contains(i)))
+                    .or_insert_with(|| food.ingredients.clone());
             }
             map
         });
-    let mut allergen_ingredient_map: Vec<(&str, &str)> = Vec::new();
-    while !allergen_foods_map.is_empty() {
-        let mut to_remove: Vec<(&str, &str)> = Vec::new();
-        for (allergen, food_indices) in allergen_foods_map.iter() {
-            let mut candidates = foods[food_indices[0]].ingredients.clone();
-            for idx in &food_indices[1..] {
-                let ingredients = &foods[*idx].ingredients;
-                candidates.retain(|i| ingredients.contains(i));
-            }
-            if candidates.len() == 1 {
-                to_remove.push((allergen, candidates.iter().next().unwrap()));
-            }
-        }
+    let mut identified_allergens: Vec<(&str, &str)> = Vec::new();
+    while !allergen_ingredients_map.is_empty() {
+        let to_remove = allergen_ingredients_map
+            .iter()
+            .filter_map(|(allergen, ingredients)| {
+                if ingredients.len() == 1 {
+                    Some((*allergen, *ingredients.iter().next().unwrap()))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
         for (allergen, ingredient) in to_remove {
-            allergen_ingredient_map.push((allergen, ingredient));
-            allergen_foods_map.remove(allergen);
-            for food in foods.iter_mut() {
-                food.ingredients.remove(ingredient);
+            identified_allergens.push((allergen, ingredient));
+            allergen_ingredients_map.remove(allergen);
+            for ingredients in allergen_ingredients_map.values_mut() {
+                ingredients.remove(ingredient);
             }
         }
     }
 
+    let allergen_ingredients: HashSet<&str> = identified_allergens.iter().map(|(_, i)| *i).collect();
     let solution1 = foods
         .iter()
-        .map(|food| food.ingredients.len())
+        .map(|food| food.ingredients.difference(&allergen_ingredients).count())
         .sum::<usize>();
     println!("{}", solution1);
 
-    allergen_ingredient_map.sort();
-    let solution2 = allergen_ingredient_map
+    identified_allergens.sort();
+    let solution2 = identified_allergens
         .iter()
-        .map(|(_, ingredient)| ingredient.to_string())
+        .map(|(_, ingredient)| *ingredient)
         .collect::<Vec<_>>()
         .join(",");
     println!("{}", solution2);
