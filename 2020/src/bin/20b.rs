@@ -4,8 +4,8 @@ use itertools::iproduct;
 
 const INPUT: &str = include_str!("../input/20.txt");
 
-const MAP_TILES: usize = 12;
-const MAP_SIZE: usize = MAP_TILES * 8;
+const IMAGE_TILES: usize = 12;
+const IMAGE_SIZE: usize = IMAGE_TILES * 8;
 
 const MONSTER: [&str; 3] = [
     "                  # ",
@@ -88,9 +88,16 @@ impl Tile {
         }
         self.transform = (self.transform & !3) | (self.transform + steps) & 3;
     }
+    fn image_data(&self) -> impl Iterator<Item = u8> + '_ {
+        self.data
+            .iter()
+            .skip(1)
+            .take(8)
+            .map(|row| ((row >> 1) & 255) as u8)
+    }
 }
 
-fn vertical(data: &[u16; 10], col: usize) -> u16 {
+fn vertical_border(data: &[u16; 10], col: usize) -> u16 {
     data.iter()
         .fold(0u16, |border, line| border << 1 | ((line >> col) & 1))
 }
@@ -127,13 +134,13 @@ impl FromStr for Tile {
         let borders = [
             // normal borders
             data[0],
-            rev_border(vertical(&data, 9)),
+            rev_border(vertical_border(&data, 9)),
             rev_border(data[9]),
-            vertical(&data, 0),
+            vertical_border(&data, 0),
             // flipped borders
-            rev_border(vertical(&data, 0)),
+            rev_border(vertical_border(&data, 0)),
             data[9],
-            vertical(&data, 9),
+            vertical_border(&data, 9),
             rev_border(data[0]),
         ];
         let neighbors = [None; 8];
@@ -147,7 +154,7 @@ impl FromStr for Tile {
     }
 }
 
-fn prepare_map() -> [u128; MAP_SIZE] {
+fn assemble_image() -> Image {
     let mut tiles: HashMap<u16, Tile> = INPUT
         .split("\n\n")
         .map(|block| block.parse::<Tile>().unwrap())
@@ -174,14 +181,12 @@ fn prepare_map() -> [u128; MAP_SIZE] {
         let mut tile1 = tiles.get_mut(&tile1_id).unwrap();
         tile1.neighbors[dir1] = Some((dir0, tile0_id));
     }
-    let mut map = [[0u16; MAP_TILES]; MAP_TILES];
+    let mut map = [[0u16; IMAGE_TILES]; IMAGE_TILES];
     {
-        let mut corners = tiles
+        let corner = tiles
             .values_mut()
-            .filter(|tile| tile.neighbors.iter().filter(|n| n.is_some()).count() == 4)
-            .collect::<Vec<_>>();
-        assert_eq!(corners.len(), 4);
-        let corner = &mut corners[0];
+            .find(|tile| tile.neighbors.iter().filter(|n| n.is_some()).count() == 4)
+            .unwrap();
         // rotate first corner so that it has neighbors on the right (E)
         // and bottom (S).
         while corner.neighbors[1].is_none() || corner.neighbors[2].is_none() {
@@ -190,7 +195,7 @@ fn prepare_map() -> [u128; MAP_SIZE] {
         map[0][0] = corner.id;
     }
     // fill first row
-    for x in 0..MAP_TILES - 1 {
+    for x in 0..IMAGE_TILES - 1 {
         let tile = &tiles[&map[0][x]];
         let (neighbor_transform, neighbor_id) = tile.neighbors[1].unwrap();
         let neighbor = tiles.get_mut(&neighbor_id).unwrap();
@@ -203,8 +208,8 @@ fn prepare_map() -> [u128; MAP_SIZE] {
         }
     }
     // fill other rows
-    for y in 0..MAP_TILES - 1 {
-        for x in 0..MAP_TILES {
+    for y in 0..IMAGE_TILES - 1 {
+        for x in 0..IMAGE_TILES {
             let tile = &tiles[&map[y][x]];
             let (neighbor_transform, neighbor_id) = tile.neighbors[2].unwrap();
             let neighbor = tiles.get_mut(&neighbor_id).unwrap();
@@ -218,39 +223,73 @@ fn prepare_map() -> [u128; MAP_SIZE] {
         }
     }
 
-    let mut data = [0u128; MAP_SIZE];
-    for y in 0..MAP_TILES {
-        for x in (0..MAP_TILES).rev() {
-            let tile = tiles.get(&map[y][x]).unwrap();
-            for row in 0..8 {
-                data[y * 8 + row] <<= 8;
-                data[y * 8 + row] |= ((tile.data[row + 1] as u128) >> 1) & 255;
+    Image::from_tiles(&tiles, &map)
+}
+
+struct Image([u128; IMAGE_SIZE]);
+
+impl Image {
+    fn new() -> Self {
+        Self([0u128; IMAGE_SIZE])
+    }
+    fn from_tiles(tiles: &HashMap<u16, Tile>, map: &[[u16; IMAGE_TILES]; IMAGE_TILES]) -> Self {
+        let mut image = Self::new();
+        for y in 0..IMAGE_TILES {
+            for x in (0..IMAGE_TILES).rev() {
+                let tile = tiles.get(&map[y][x]).unwrap();
+                for (i, data) in tile.image_data().enumerate() {
+                    image.0[y * 8 + i] <<= 8;
+                    image.0[y * 8 + i] |= data as u128;
+                }
             }
         }
+        image
     }
-
-    data
+    fn rotate(&self) -> Self {
+        let mut new_image = Self::new();
+        for y in 0..IMAGE_SIZE {
+            for x in 0..IMAGE_SIZE {
+                new_image.0[x] |= ((self.0[y] >> x) & 1) << (IMAGE_SIZE - y - 1);
+            }
+        }
+        new_image
+    }
+    fn count_monsters(&self, monster: &[u128; MONSTER_HEIGHT]) -> usize {
+        iproduct!(
+            0..(IMAGE_SIZE - MONSTER_HEIGHT + 1),
+            0..(IMAGE_SIZE - MONSTER_WIDTH + 1)
+        )
+        .filter(|(y, x)| {
+            (0..MONSTER_HEIGHT).all(|row| (self.0[y + row] >> x) & monster[row] == monster[row])
+        })
+        .count()
+    }
+    fn count_waves(&self) -> usize {
+        self.0
+            .iter()
+            .map(|row| (0..IMAGE_SIZE).filter(|i| (row >> i) & 1 == 1).count())
+            .sum::<usize>()
+    }
 }
 
-fn flip_map(data: &[u128; MAP_SIZE]) -> [u128; MAP_SIZE] {
-    let mut new_data = [0u128; MAP_SIZE];
-    for y in 0..MAP_SIZE {
-        for x in 0..MAP_SIZE {
-            new_data[x] |= ((data[y] >> x) & 1) << y;
-        }
+impl Display for Image {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self
+            .0
+            .iter()
+            .map(|row| {
+                (0..IMAGE_SIZE)
+                    .map(|i| match (row >> (IMAGE_SIZE - i - 1)) & 1 {
+                        0 => '.',
+                        1 => '#',
+                        _ => unreachable!(),
+                    })
+                    .collect::<String>()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        write!(f, "{}", s)
     }
-    new_data
-}
-
-// rotate
-fn rotate_map(data: &[u128; MAP_SIZE]) -> [u128; MAP_SIZE] {
-    let mut new_data = [0u128; MAP_SIZE];
-    for y in 0..MAP_SIZE {
-        for x in 0..MAP_SIZE {
-            new_data[x] |= ((data[y] >> x) & 1) << (MAP_SIZE - y - 1);
-        }
-    }
-    new_data
 }
 
 fn prepare_monster() -> [u128; MONSTER_HEIGHT] {
@@ -268,53 +307,17 @@ fn prepare_monster() -> [u128; MONSTER_HEIGHT] {
     monster
 }
 
-fn count_monsters(map: &[u128; MAP_SIZE], monster: &[u128; MONSTER_HEIGHT]) -> usize {
-    iproduct!(
-        0..(MAP_SIZE - MONSTER_HEIGHT + 1),
-        0..(MAP_SIZE - MONSTER_WIDTH + 1)
-    )
-    .filter(|(y, x)| {
-        (0..MONSTER_HEIGHT).all(|row| (map[y + row] >> x) & monster[row] == monster[row])
-    })
-    .count()
-}
-
-fn map_to_string(map: &[u128; MAP_SIZE]) -> String {
-    map.iter()
-        .map(|row| {
-            (0..MAP_SIZE)
-                .map(|i| match (row >> (MAP_SIZE - i - 1)) & 1 {
-                    0 => '.',
-                    1 => '#',
-                    _ => unreachable!(),
-                })
-                .collect::<String>()
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
 fn main() {
-    let map_0 = prepare_map();
-    let map_1 = rotate_map(&map_0);
-    let map_2 = rotate_map(&map_1);
-    let map_3 = rotate_map(&map_2);
-    let map_4 = flip_map(&map_0);
-    let map_5 = rotate_map(&map_4);
-    let map_6 = rotate_map(&map_5);
-    let map_7 = rotate_map(&map_6);
+    let mut image = assemble_image();
     let monster = prepare_monster();
-    let monster_count = count_monsters(&map_0, &monster)
-        + count_monsters(&map_1, &monster)
-        + count_monsters(&map_2, &monster)
-        + count_monsters(&map_3, &monster)
-        + count_monsters(&map_4, &monster)
-        + count_monsters(&map_5, &monster)
-        + count_monsters(&map_6, &monster)
-        + count_monsters(&map_7, &monster);
-    let map_waves = map_0.iter().map(|row| {
-        (0..MAP_SIZE).filter(|i| (row >> i) & 1 == 1).count()
-    }).sum::<usize>();
-    let solution = map_waves - monster_count * MONSTER_WAVES;
+    let monster_rev = [monster[2], monster[1], monster[0]];
+    let mut monster_count = 0;
+    for _ in 0..4 {
+        monster_count += image.count_monsters(&monster);
+        monster_count += image.count_monsters(&monster_rev);
+        image = image.rotate();
+    }
+    let image_waves = image.count_waves();
+    let solution = image_waves - monster_count * MONSTER_WAVES;
     println!("{}", solution);
 }
