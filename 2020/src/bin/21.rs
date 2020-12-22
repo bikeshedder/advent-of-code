@@ -54,7 +54,8 @@ fn main() {
         }
     }
 
-    let allergen_ingredients: HashSet<&str> = identified_allergens.iter().map(|(_, i)| *i).collect();
+    let allergen_ingredients: HashSet<&str> =
+        identified_allergens.iter().map(|(_, i)| *i).collect();
     let solution1 = foods
         .iter()
         .map(|food| food.ingredients.difference(&allergen_ingredients).count())
