@@ -1,33 +1,73 @@
-use std::char;
+use std::ops::{Index, IndexMut};
+
+use itertools::Itertools;
 
 const INPUT: &str = "215694783";
-const LEN: usize = 1_000_000;
-const MOVES: usize = 10_000_000;
+const LEN: Cup = 1_000_000;
+const MOVES: Cup = 10_000_000;
+
+type Cup = u32;
+struct Cups([Cup; LEN as usize]);
+
+impl Cups {
+    fn new() -> Self {
+        Self([0; LEN as usize])
+    }
+    fn pick_up(&self, current_cup: Cup) -> [Cup; 3] {
+        let c1 = self[current_cup];
+        let c2 = self[c1];
+        let c3 = self[c2];
+        [c1, c2, c3]
+    }
+    fn put_down(&mut self, current_cup: Cup, picked_up: [Cup; 3]) {
+        let mut prev_cup = current_cup;
+        loop {
+            prev_cup = prev_cup.checked_sub(1).unwrap_or(LEN as Cup-1);
+            if !picked_up.contains(&prev_cup) {
+                break;
+            }
+        }
+        self[current_cup] = self[picked_up[2]];
+        let tmp = self[prev_cup];
+        self[prev_cup] = picked_up[0] as Cup;
+        self[picked_up[2]] = tmp;
+    }
+}
+
+impl Index<Cup> for Cups {
+    type Output = Cup;
+    fn index(&self, index: Cup) -> &Self::Output{
+        &self.0[index as usize]
+    }
+}
+
+impl IndexMut<Cup> for Cups {
+    fn index_mut(&mut self, index: Cup) -> &mut Self::Output {
+        &mut self.0[index as usize]
+    }
+}
 
 fn main() {
-    let mut cups: Vec<i64> = INPUT
+    let mut cups: Cups = Cups::new();
+    let start = INPUT
         .chars()
-        .map(|c| c.to_digit(10).unwrap() as i64)
-        .collect();
-    cups.reserve(LEN - cups.len());
-    for c in INPUT.len() + 1..=LEN {
-        cups.push(c as i64);
+        .map(|c| c.to_digit(10).unwrap())
+        .collect::<Vec<_>>();
+    for (c0, c1) in start.iter().tuple_windows() {
+        cups[*c0 % LEN] = (*c1 % LEN) as Cup;
     }
-    let start_time = std::time::SystemTime::now();
-    for m in 1..=MOVES {
-        let insert_idx = (4..LEN)
-            .min_by_key(|i| (cups[0] - cups[*i]).rem_euclid(LEN as i64))
-            .unwrap();
-        cups[1..insert_idx + 1].rotate_left(3);
-        cups.rotate_left(1);
-        if m % 1000 == 0 {
-            let elapsed = std::time::SystemTime::now().duration_since(start_time).unwrap();
-            let remaining = (elapsed / m as u32) * (MOVES - m) as u32;
-            println!("move {} ({:.2}%) {:?}", m, m as f64 / MOVES as f64 * 100.0, remaining);
-        }
+    cups[0] = start[0];
+    cups[start[start.len() - 1]] = start.len() as Cup + 1;
+    for i in start.len() as Cup + 1..LEN {
+        cups[i] = (i + 1) % LEN;
     }
-    let cup1_idx = cups.iter().position(|cup| *cup == 1).unwrap();
-    cups.rotate_left(cup1_idx as usize);
-    println!("{:?}", cups[0..10].iter().collect::<Vec<_>>());
-    println!("{}", cups[1] * cups[2]);
+
+    let mut current_cup = start[0];
+    for _ in 1..=MOVES {
+        let picked_up = cups.pick_up(current_cup);
+        cups.put_down(current_cup, picked_up);
+        current_cup = cups[current_cup];
+    }
+
+    println!("{}", cups[1] as u64 * cups[cups[1]] as u64);
 }
