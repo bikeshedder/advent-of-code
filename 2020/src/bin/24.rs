@@ -37,6 +37,9 @@ impl Coord {
     fn follow_path(&self, path: &[Coord]) -> Coord {
         path.iter().fold(*self, |c, dir| c + *dir)
     }
+    fn neighbors(&self) -> impl IntoIterator<Item = Self> + '_ {
+        NEIGHBORS.iter().map(move |&x| *self + x)
+    }
 }
 
 type Floor = HashSet<Coord>;
@@ -65,30 +68,28 @@ fn main() {
     for _ in 1..=100 {
         let black_tiles = floor.clone();
         let mut white_tiles = Floor::new();
-        for &c in black_tiles.iter() {
+        for &tile in black_tiles.iter() {
             let mut black_neighbors = 0;
-            for &n in NEIGHBORS.iter() {
-                let nc = c + n;
-                if black_tiles.contains(&nc) {
+            for n in tile.neighbors() {
+                if black_tiles.contains(&n) {
                     black_neighbors += 1;
                 } else {
-                    white_tiles.insert(nc);
+                    white_tiles.insert(n);
                 }
             }
             if black_neighbors == 0 || black_neighbors > 2 {
-                floor.remove(&c);
+                floor.remove(&tile);
             }
         }
-        for &c in white_tiles.iter() {
+        for &tile in white_tiles.iter() {
             let mut black_neighbors = 0;
-            for &n in NEIGHBORS.iter() {
-                let nc = c + n;
-                if black_tiles.contains(&nc) {
+            for n in tile.neighbors() {
+                if black_tiles.contains(&n) {
                     black_neighbors += 1;
                 }
             }
             if black_neighbors == 2 {
-                floor.insert(c);
+                floor.insert(tile);
             }
         }
     }
