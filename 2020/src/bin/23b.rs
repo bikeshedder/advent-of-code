@@ -22,7 +22,7 @@ impl Cups {
     fn put_down(&mut self, current_cup: Cup, picked_up: [Cup; 3]) {
         let mut prev_cup = current_cup;
         loop {
-            prev_cup = prev_cup.checked_sub(1).unwrap_or(LEN as Cup-1);
+            prev_cup = prev_cup.checked_sub(1).unwrap_or(LEN as Cup - 1);
             if !picked_up.contains(&prev_cup) {
                 break;
             }
@@ -36,7 +36,7 @@ impl Cups {
 
 impl Index<Cup> for Cups {
     type Output = Cup;
-    fn index(&self, index: Cup) -> &Self::Output{
+    fn index(&self, index: Cup) -> &Self::Output {
         &self.0[index as usize]
     }
 }
