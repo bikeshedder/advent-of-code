@@ -26,7 +26,7 @@ fn main() {
         .split_whitespace()
         .map(|line| i32::from_str_radix(line, 2).unwrap())
         .collect::<Vec<_>>();
-    numbers.sort();
+    numbers.sort_unstable();
     let oxygen = rating(&numbers, usize::gt);
     let co2 = rating(&numbers, usize::le);
     let answer = oxygen * co2;

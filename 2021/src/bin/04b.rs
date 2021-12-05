@@ -37,7 +37,7 @@ impl Board {
     }
 }
 
-fn play<'a>(numbers: &[i32], boards: &'a mut [Board]) -> i32 {
+fn play(numbers: &[i32], boards: &mut [Board]) -> i32 {
     let mut last_score = 0;
     for (round, &number) in numbers.iter().enumerate() {
         for board in boards.iter_mut() {
@@ -58,7 +58,7 @@ fn main() {
     let numbers: Vec<i32> = blocks
         .next()
         .unwrap()
-        .split(",")
+        .split(',')
         .map(|s| str::parse(s).unwrap())
         .collect();
     let mut boards: Vec<Board> = blocks.map(Board::parse).collect();
